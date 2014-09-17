@@ -62,7 +62,6 @@ import javax.crypto.Cipher;
 public class Utilities {
     public static Pattern pattern = Pattern.compile("[0-9]+");
     public static SecureRandom random = new SecureRandom();
-    private final static Integer lock = 1;
 
     public static ArrayList<String> goodPrimes = new ArrayList<String>();
 
@@ -132,7 +131,7 @@ public class Utilities {
 
     public native static long doPQNative(long _what);
     public native static void loadBitmap(String path, int[] bitmap, int scale, int format, int width, int height);
-    public native static void blurBitmap(Object bitmap, int width, int height, int stride);
+    public native static void blurBitmap(Object bitmap);
     private native static void aesIgeEncryption(ByteBuffer buffer, byte[] key, byte[] iv, boolean encrypt, int offset, int length);
 
     public static void aesIgeEncryption(ByteBuffer buffer, byte[] key, byte[] iv, boolean encrypt, boolean changeIv, int offset, int length) {
@@ -167,12 +166,21 @@ public class Utilities {
     public static String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         int v;
-        for ( int j = 0; j < bytes.length; j++ ) {
+        for (int j = 0; j < bytes.length; j++) {
             v = bytes[j] & 0xFF;
             hexChars[j * 2] = hexArray[v >>> 4];
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    public static byte[] hexToBytes(String hex) {
+        int len = hex.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4) + Character.digit(hex.charAt(i + 1), 16));
+        }
+        return data;
     }
 
     public static boolean isGoodPrime(byte[] prime, int g) {
@@ -501,12 +509,6 @@ public class Utilities {
         return true;
     }
 
-    public static void RunOnUIThread(Runnable runnable) {
-        synchronized (lock) {
-            ApplicationLoader.applicationHandler.post(runnable);
-        }
-    }
-
     public static int getColorIndex(int id) {
         int[] arr;
         if (id >= 0) {
@@ -545,7 +547,7 @@ public class Utilities {
     }
 
     public static int getUserAvatarForId(int id) {
-        if (id / 1000 == 333) {
+        if (id / 1000 == 333 || id / 1000 == 777) {
             return R.drawable.telegram_avatar;
         }
         return arrUsersAvatars[getColorIndex(id)];
@@ -759,7 +761,7 @@ public class Utilities {
         String result = firstName;
         if (result == null || result.length() == 0) {
             result = lastName;
-        } else if (result.length() != 0 && lastName.length() != 0) {
+        } else if (result.length() != 0 && lastName != null && lastName.length() != 0) {
             result += " " + lastName;
         }
         return result.trim();
